@@ -1,5 +1,35 @@
 version: 2.1
 
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws cloudformation destroy-stack --stackname "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
+
+  revert-migrations:
+    description: Revert the last migration if successfully run in the current workflow.
+    parameters:
+      # Add parameter here     
+    steps:
+      - run:
+          name: Revert migrations
+          # Add when this will run
+          command: |
+            # Curl command here to see if there was a successful migration associated with the workflow id, store result in SUCCESS variable
+            SUCCESS = 1
+            if(( $SUCCESS==1 )); 
+            then
+            #  cd ~/project/backend
+            #  npm install
+            #  Add revert code here. You can find this in the Getting Started section.
+              exit 1
+            fi
+          
 jobs:
   build-frontend:
     docker:
@@ -82,7 +112,6 @@ jobs:
             cd frontend
             npm install
             npm audit fix --audit-level=critical --force
-            # npm audit --audit-level=critical
       - save_cache:
           paths: [frontend/node_modules]
           key: frontend-build
@@ -105,6 +134,36 @@ jobs:
           paths: [backend/node_modules]
           key: backend-build
 
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum -y install tar gzip
+      - run: 
+          name: Deploy backend
+          command: |
+            aws cloudformation deploy \
+                --template-file .circleci/files/backend.yml \
+                --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+                --tags project=udapeople
+      - run: 
+          name: Deploy frontend
+          command: |
+            aws cloudformation deploy \
+                --template-file .circleci/files/frontend.yml \
+                --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+                --tags project=udapeople
+      - run: 
+          name: Build the inventory of the target machines
+          command: |
+            aws ec2 describe-instances \
+                --filters "Name=tag:Owner,Values=my-team"
+                --query Reservations[*].Instances[*].[PrivateDnsName] > inventory.txt
+      - destroy-environment
+
 workflows:
   default:
     jobs:
@@ -118,3 +177,5 @@ workflows:
           requires: [build-frontend]
       - scan-backend:
           requires: [build-backend]
+      - deploy-infrastructure: 
+          requires: [scan-backend, scan-frontend]
