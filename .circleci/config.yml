@@ -160,9 +160,9 @@ jobs:
           name: Build the inventory of the target machines
           command: |
             aws ec2 describe-instances \
-                --filters "Name=tag:Owner,Values=my-team"
+                --filters "Name=tag:Owner,Values=my-team" \
                 --query Reservations[*].Instances[*].[PrivateDnsName] > inventory.txt
-      - destroy-environment
+      # - destroy-environment
 
 workflows:
   default:
