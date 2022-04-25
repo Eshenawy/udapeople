@@ -8,7 +8,7 @@ commands:
           name: Destroy environments
           when: on_fail
           command: | 
-            aws cloudformation delete-stack --stackname "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
+            aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
 
   revert-migrations:
@@ -160,10 +160,25 @@ jobs:
           name: Build the inventory of the target machines
           command: |
             aws ec2 describe-instances \
-                --filters "Name=tag:Owner,Values=my-team" \sd
+                --filters "Name=tag:Owner,Values=my-team" \
                 --query Reservations[*].Instances[*].[PrivateDnsName] > inventory.txt
       - destroy-environment
 
+  configure-infrastructure:
+    docker:
+      - image: python:3.7-alpine3.11
+    steps: 
+      - checkout
+      - add_ssh_keys:
+              fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"] 
+      - run:
+          name: Install Ansible
+          command: |
+            apk add --update ansible
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            ansible-playbook -i inventory main.yml
 workflows:
   default:
     jobs:
