@@ -161,7 +161,7 @@ jobs:
           name: Build the inventory of the target machines
           command: |
             aws ec2 describe-instances \
-                --filters "Name=tag:Owner,Values=my-team" \ss
+                --filters "Name=tag:Owner,Values=my-team" \
                 --query Reservations[*].Instances[*].[PrivateDnsName] > /tmp/workspace/inventory.txt
       - persist_to_workspace:
           root: /tmp/workspace
@@ -179,12 +179,14 @@ jobs:
       - add_ssh_keys:
               fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"] 
       - run:
-          name: Install Ansible
+          name: Install dependecies
           command: |
+            apk add --no-cache aws-cli 
             apk add --update ansible
       - run:
           name: Run Playbook and Configure server
           command: |
+            cd .circleci/ansible
             ansible-playbook -i inventory.txt configure-server.yml
 workflows:
   default:
