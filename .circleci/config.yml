@@ -160,6 +160,9 @@ jobs:
       - run: 
           name: Build the inventory of the target machines
           command: |
+            touch /tmp/workspace/inventory.txt
+            cd /tmp/workspace/
+            echo "[web]" > inventory.txt
             aws ec2 describe-instances \
                 --filters "Name=tag:Owner,Values=my-team" \
                 --query Reservations[*].Instances[*].[PrivateDnsName] > /tmp/workspace/inventory.txt
