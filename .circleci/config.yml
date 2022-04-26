@@ -193,6 +193,7 @@ jobs:
           command: |
             cd .circleci/ansible
             ansible-playbook -i /tmp/workspace/inventory.txt configure-server.yml
+      - destroy-environment
 
   run-migrations: 
     docker:
@@ -201,6 +202,11 @@ jobs:
       - checkout
       - restore_cache:
           keys: [backend-build]
+      - run:
+          name: Install aws-cli
+          command: | 
+            sudo apt-get update
+            sudo apt-get install --assume-yes awscli
       - run:
           name: Run migrations
           command: |
@@ -281,12 +287,11 @@ workflows:
       # - scan-backend:
       #     requires: [build-backend]
       # - deploy-infrastructure: 
-      - deploy-infrastructure
-          # requires: [scan-backend, scan-frontend]
-      - configure-infrastructure:
-          requires: [deploy-infrastructure]
+      #     requires: [scan-backend, scan-frontend]
+      # - configure-infrastructure:
+      #     requires: [deploy-infrastructure]
       - run-migrations:
-          requires: [configure-infrastructure]
+          # requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [run-migrations]
 
