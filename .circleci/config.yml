@@ -160,6 +160,8 @@ jobs:
       - run: 
           name: Build the inventory of the target machines
           command: |
+            [ ! -d /tmp ] && mkdir /tmp
+            [ ! -d /tmp/workspace ] && mkdir /tmp/workspace
             touch /tmp/workspace/inventory.txt
             cd /tmp/workspace/
             echo "[web]" > inventory.txt
