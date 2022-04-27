@@ -7,7 +7,7 @@ commands:
       - run:
           name: Destroy environments
           when: on_fail
-          command: | 
+          command: |
             aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive
             aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}"
             aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}"
@@ -15,7 +15,7 @@ commands:
   revert-migrations:
     description: Revert the last migration if successfully run in the current workflow.
     parameters:
-      # Add parameter here     
+      # Add parameter here
     steps:
       - run:
           name: Revert migrations
@@ -30,7 +30,7 @@ commands:
             #  Add revert code here. You can find this in the Getting Started section.
               exit 1
             fi
-          
+
 jobs:
   build-frontend:
     docker:
@@ -141,7 +141,7 @@ jobs:
     steps:
       - checkout
       - run: yum -y install tar gzip
-      - run: 
+      - run:
           name: Deploy backend
           command: |
             aws cloudformation deploy \
@@ -149,7 +149,7 @@ jobs:
                 --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
                 --tags project=udapeople
-      - run: 
+      - run:
           name: Deploy frontend
           command: |
             aws cloudformation deploy \
@@ -157,7 +157,7 @@ jobs:
                 --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
                 --tags project=udapeople
-      - run: 
+      - run:
           name: Build the inventory of the target machines
           command: |
             [ ! -d /tmp ] && mkdir /tmp
@@ -177,12 +177,12 @@ jobs:
   configure-infrastructure:
     docker:
       - image: python:3.7-alpine3.12
-    steps: 
+    steps:
       - checkout
-      - attach_workspace: 
+      - attach_workspace:
           at: /tmp/workspace
       - add_ssh_keys:
-              fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"] 
+          fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"]
       - run:
           name: Install dependecies
           command: |
@@ -195,7 +195,7 @@ jobs:
             ansible-playbook -i /tmp/workspace/inventory.txt configure-server.yml
       - destroy-environment
 
-  run-migrations: 
+  run-migrations:
     docker:
       - image: circleci/node:13.8.0
     steps:
@@ -204,7 +204,7 @@ jobs:
           keys: [backend-build]
       - run:
           name: Install aws-cli
-          command: | 
+          command: |
             sudo apt-get update
             sudo apt-get install --assume-yes awscli
       - run:
@@ -225,7 +225,7 @@ jobs:
   deploy-frontend:
     docker:
       - image: amazon/aws-cli
-    steps: 
+    steps:
       - checkout
       - run:
           name: Install tar utility
@@ -240,16 +240,16 @@ jobs:
             amazon-linux-extras enable ansible2
             yum install -y ansible
             ansible --version
-      - run: 
+      - run:
           name: install Nodejs
           command: |
-            curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
+            curl -sL https://rpm.nodesource.com/setup_10.x 
             yum install nodejs
             node --version
             npm --version
-      - run: 
+      - run:
           name: Install PM2
-          command: | 
+          command: |
             npm i -g pm2
             pm2 -v
       - run:
@@ -271,8 +271,7 @@ jobs:
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
       - destroy-environment
-      - revert-migrations       
-
+      - revert-migrations
 
 workflows:
   default:
@@ -287,12 +286,11 @@ workflows:
       #     requires: [build-frontend]
       # - scan-backend:
       #     requires: [build-backend]
-      # - deploy-infrastructure: 
+      # - deploy-infrastructure:
       #     requires: [scan-backend, scan-frontend]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
       # - run-migrations
       #     requires: [configure-infrastructure]
       - deploy-frontend
-          # requires: [run-migrations]
-
+        # requires: [run-migrations]
