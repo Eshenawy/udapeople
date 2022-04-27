@@ -238,7 +238,7 @@ jobs:
           name: Install Ansible
           command: |
             sudo apt-get update
-            sudo amazon-linux-extras enable ansible2
+            # amazon-linux-extras enable ansible2
             sudo apt-get install -y ansible
             ansible --version
       # - run:
