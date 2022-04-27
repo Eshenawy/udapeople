@@ -237,7 +237,7 @@ jobs:
           name: Install Ansible
           command: |
             yum update
-            if amazon-linux-extras list | ! grep ansible2
+            if dpkg -l | grep ansible2
             then
               amazon-linux-extras enable ansible2
             fi
