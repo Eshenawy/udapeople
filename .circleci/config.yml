@@ -230,6 +230,10 @@ jobs:
       - attach_workspace:
           at: /tmp/workspace
       - run:
+          name: Install tar utility
+          command: |
+            sudo yum install -y tar gzip
+      - run:
           name: Install Ansible
           command: |
             sudo yum update
@@ -239,10 +243,6 @@ jobs:
             fi
             sudo yum install -y ansible
             ansible --version
-      - run:
-          name: Install tar utility
-          command: |
-            sudo yum install -y tar gzip
       - run: 
           name: install Nodejs
           command: |
