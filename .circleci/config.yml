@@ -237,10 +237,7 @@ jobs:
           name: Install Ansible
           command: |
             yum update
-            if dpkg -l | grep ansible2
-            then
-              amazon-linux-extras enable ansible2
-            fi
+            amazon-linux-extras enable ansible2
             yum install -y ansible
             ansible --version
       - run: 
@@ -294,8 +291,8 @@ workflows:
       #     requires: [scan-backend, scan-frontend]
       # - configure-infrastructure:
       #     requires: [deploy-infrastructure]
-      - run-migrations
-          # requires: [configure-infrastructure]
+      # - run-migrations
+      #     requires: [configure-infrastructure]
       - deploy-frontend:
           requires: [run-migrations]
 
