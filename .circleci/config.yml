@@ -221,7 +221,6 @@ jobs:
 
   deploy-frontend:
     docker:
-      # - image: amazon/aws-cli
       - image: doctrine/nodejs-aws-cli
     steps:
       - checkout
@@ -238,13 +237,6 @@ jobs:
             # amazon-linux-extras enable ansible2
             sudo apt-get install -y ansible
             ansible --version
-      # - run:
-      #     name: install Nodejs
-      #     command: |
-      #       curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
-      #       yum install nodejs
-      #       node --version
-      #       npm --version
       - run:
           name: Install PM2
           command: |
@@ -268,6 +260,7 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
+            exit 1
       - destroy-environment
       - revert-migrations
 
