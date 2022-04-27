@@ -236,24 +236,24 @@ jobs:
       - run:
           name: Install Ansible
           command: |
-            sudo yum update
+            yum update
             if amazon-linux-extras list | ! grep ansible2
             then
-              sudo amazon-linux-extras enable ansible2
+              amazon-linux-extras enable ansible2
             fi
-            sudo yum install -y ansible
+            yum install -y ansible
             ansible --version
       - run: 
           name: install Nodejs
           command: |
             curl -sL https://rpm.nodesource.com/setup_10.x | sudo bash -
-            sudo yum install nodejs
+            yum install nodejs
             node --version
             npm --version
       - run: 
           name: Install PM2
           command: | 
-            sudo npm i -g pm2
+            npm i -g pm2
             pm2 -v
       - run:
           name: Get backend url
