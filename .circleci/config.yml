@@ -239,6 +239,10 @@ jobs:
             fi
             sudo yum install -y ansible
             ansible --version
+      - run:
+          name: Install tar utility
+          command: |
+            sudo yum install -y tar gzip
       - run: 
           name: install Nodejs
           command: |
