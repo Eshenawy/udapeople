@@ -248,11 +248,11 @@ jobs:
       #       yum install nodejs
       #       node --version
       #       npm --version
-      # - run:
-      #     name: Install PM2
-      #     command: |
-      #       npm i -g pm2
-      #       pm2 -v
+      - run:
+          name: Install PM2
+          command: |
+            npm i -g pm2
+            pm2 -v
       - run: 
           command: pm2 ls
       - run:
