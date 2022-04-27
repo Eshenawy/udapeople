@@ -21,7 +21,7 @@ commands:
           command: |
             export SUCCESS=$(curl https://kvdb.io/$KVDB_ACCESS_KEY/migration_${CIRCLE_WORKFLOW_ID:0:7} -k)
             echo "success equals $SUCCESS"
-            if [ "$SUCCESS" == 1 ];  
+            if [ "$SUCCESS" == 1 ]; 
             then
               cd ~/project/backend
               npm install
@@ -225,6 +225,8 @@ jobs:
     docker:
       - image: doctrine/nodejs-aws-cli
     steps:
+      - add_ssh_keys:
+          fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"]
       - checkout
       - run:
           name: Install tar utility
@@ -236,7 +238,6 @@ jobs:
           name: Install Ansible
           command: |
             sudo apt-get update
-            # amazon-linux-extras enable ansible2
             sudo apt-get install -y ansible
             ansible --version
       - run:
@@ -249,7 +250,7 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
                 --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --query Reservations[*].Instances[*].[PrivateDnsName])
+                --query Reservations[*].Instances[*].[PrivateDnsName] --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
@@ -262,8 +263,42 @@ jobs:
             npm run build
             tar -czvf artifact-"${CIRCLE_WORKFLOW_ID:0:7}".tar.gz dist
             aws s3 cp dist s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7} --recursive
-            "test migration revert"
-            exit 1
+      - destroy-environment
+      - revert-migrations
+
+  deploy-backend:
+    docker:
+      - image: doctrine/nodejs-aws-cli
+    steps:
+      - checkout
+      - run:
+          name: Install tar utility
+          command: |
+            sudo apt-get install -y tar gzip
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Install Ansible
+          command: |
+            sudo apt-get update
+            sudo apt-get install -y ansible
+            ansible --version
+      - run:
+          name: Install PM2
+          command: |
+            sudo npm i -g pm2
+            pm2 -v
+      - run: 
+          command: | 
+            cd backend
+            npm i
+            npm run build
+            cd ..
+            tar -C backend -czvf artifact.tar.gz .
+            cd .circleci/ansible
+            echo "Contents  of the inventory.txt file is -------"
+            cat /tmp/workspace/inventory.txt
+            ansible-playbook -i /tmp/workspace/inventory.txt deploy-backend.yml
       - destroy-environment
       - revert-migrations
 
