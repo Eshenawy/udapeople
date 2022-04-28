@@ -165,7 +165,7 @@ jobs:
             echo "[web]" >> inventory.txt
             aws ec2 describe-instances \
                 --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --query Reservations[*].Instances[*].[PrivateDnsName] --output text >> /tmp/workspace/inventory.txt
+                --query Reservations[*].Instances[*].[PublicDnsName] --output text >> /tmp/workspace/inventory.txt
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -255,7 +255,7 @@ jobs:
           command: |
             export BACKEND_IP=$(aws ec2 describe-instances \
                 --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --query Reservations[*].Instances[*].[PrivateDnsName] --output text)
+                --query Reservations[*].Instances[*].[PublicDnsName] --output text)
             export API_URL="http://${BACKEND_IP}:3030"
             echo "API_URL = ${API_URL}"
             echo API_URL="http://${BACKEND_IP}:3030" >> frontend/.env
