@@ -141,30 +141,31 @@ jobs:
       - run:
           name: Deploy backend
           command: |
+            pwd
             aws cloudformation deploy \
                 --template-file .circleci/files/backend.yml \
                 --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
                 --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
                 --tags project=udapeople
-      - run:
-          name: Deploy frontend
-          command: |
-            aws cloudformation deploy \
-                --template-file .circleci/files/frontend.yml \
-                --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
-                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
-                --tags project=udapeople
+      # - run:
+      #     name: Deploy frontend
+      #     command: |
+      #       aws cloudformation deploy \
+      #           --template-file .circleci/files/frontend.yml \
+      #           --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+      #           --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+      #           --tags project=udapeople
       - run:
           name: Build the inventory of the target machines
           command: |
-            [ ! -d /tmp ] && mkdir /tmp
-            [ ! -d /tmp/workspace ] && mkdir /tmp/workspace
+            pwd
+            mkdir -p /tmp/workspace
             touch /tmp/workspace/inventory.txt
             cd /tmp/workspace/
             echo "[web]" > inventory.txt
             aws ec2 describe-instances \
-                --filters "Name=tag:Owner,Values=my-team" \
-                --query Reservations[*].Instances[*].[PrivateDnsName] > /tmp/workspace/inventory.txt
+                --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query Reservations[*].Instances[*].[PrivateDnsName] --output text > /tmp/workspace/inventory.txt
       - persist_to_workspace:
           root: /tmp/workspace
           paths:
@@ -183,11 +184,14 @@ jobs:
       - run:
           name: Install dependecies
           command: |
+            pwd
             apk add --no-cache aws-cli 
             apk add --update ansible
       - run:
           name: Run Playbook and Configure server
           command: |
+            pwd
+            cat /tmp/workspace/inventory.txt
             cd .circleci/ansible
             ansible-playbook -i /tmp/workspace/inventory.txt configure-server.yml
       - destroy-environment
@@ -270,7 +274,10 @@ jobs:
     docker:
       - image: doctrine/nodejs-aws-cli
     steps:
-      - checkout
+      - checkout: 
+          path: ~/project
+      - restore_cache:
+          keys: [backend-build]
       - run:
           name: Install tar utility
           command: |
@@ -289,15 +296,16 @@ jobs:
             sudo npm i -g pm2
             pm2 -v
       - run: 
+          name: Deploy backend
           command: | 
-            cd backend
+            cd ~/project/backend
             npm i
             npm run build
             cd ..
             tar -C backend -czvf artifact.tar.gz .
-            cd .circleci/ansible
             echo "Contents  of the inventory.txt file is -------"
             cat /tmp/workspace/inventory.txt
+            cd .circleci/ansible
             ansible-playbook -i /tmp/workspace/inventory.txt deploy-backend.yml
       - destroy-environment
       - revert-migrations
@@ -305,21 +313,34 @@ jobs:
 workflows:
   default:
     jobs:
-      - build-frontend
       - build-backend
-      - test-frontend:
-          requires: [build-frontend]
-      - test-backend:
-          requires: [build-backend]
-      - scan-frontend:
-          requires: [build-frontend]
-      - scan-backend:
-          requires: [build-backend]
       - deploy-infrastructure:
-          requires: [scan-backend, scan-frontend]
       - configure-infrastructure:
           requires: [deploy-infrastructure]
-      - run-migrations:
+      - deploy-backend: 
           requires: [configure-infrastructure]
-      - deploy-frontend:
-          requires: [run-migrations]
+
+
+# workflows:
+#   default:
+#     jobs:
+#       - build-frontend
+#       - build-backend
+#       - test-frontend:
+#           requires: [build-frontend]
+#       - test-backend:
+#           requires: [build-backend]
+#       - scan-frontend:
+#           requires: [build-frontend]
+#       - scan-backend:
+#           requires: [build-backend]
+#       - deploy-infrastructure:
+#           requires: [scan-backend, scan-frontend]
+#       - configure-infrastructure:
+#           requires: [deploy-infrastructure]
+#       - run-migrations:
+#           requires: [configure-infrastructure]
+#       - deploy-frontend:
+#           requires: [run-migrations]
+#       - deploy-backend: 
+#           requires: [deploy-frontend]
