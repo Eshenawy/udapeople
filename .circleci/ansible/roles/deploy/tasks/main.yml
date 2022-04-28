@@ -28,7 +28,7 @@
     state: present
 
 - name: "Fetch the artifact and extract it"
-  fetch: 
+  copy: 
     src: ~/project/artifact.tar.gz
     dest: /home/ubuntu/artifact.tar.gz
     flat: yes 
@@ -36,7 +36,7 @@
 - name: "Prepare application files"
   shell: | 
     cd /home/ubuntu
-    mkdir app && tar xvzf artifact.tar.gz -C .
+    mkdir app && tar xzf artifact.tar.gz -C .
     echo "listing content of /home/ubuntu"
     ls -U | head -10
     cd app
