@@ -274,6 +274,8 @@ jobs:
     docker:
       - image: doctrine/nodejs-aws-cli
     steps:
+      - add_ssh_keys:
+          fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"]
       - checkout
       - restore_cache:
           keys: [backend-build]
