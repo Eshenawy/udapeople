@@ -35,12 +35,10 @@
 - name: "Prepare application files"
   shell: | 
     cd /home/ubuntu
-    mkdir app && tar xzf artifact.tar.gz -C .
+    mkdir app && tar xzf artifact.tar.gz -C app
     echo "listing content of /home/ubuntu"
-    ls -U | head -10
     cd app
     echo "listing content of /home/ubuntu/app"
-    ls -U | head -10
 
 - name: "Start the server"
   shell: | 
