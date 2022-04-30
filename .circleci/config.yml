@@ -71,6 +71,7 @@ jobs:
           paths: [backend/node_modules]
           key: backend-build
 
+<<<<<<< HEAD
   scan-frontend:
     docker:
       - image: circleci/node:13.8.0
@@ -104,6 +105,8 @@ jobs:
       - save_cache:
           paths: [backend/node_modules]
           key: backend-build
+=======
+>>>>>>> parent of 7fdbf46 (scan frontend and backend)
 
 
 
@@ -117,7 +120,3 @@ workflows:
           requires: [build-frontend]
       - test-backend:
           requires: [build-backend]
-      - scan-frontend:
-          requires: [test-frontend]
-      - scan-backend:
-          requires: [test-backend]
