@@ -138,7 +138,7 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
-      # - run: yum -y install tar gzip
+      - run: yum -y install tar gzip
       - run:
           name: Deploying backend infrastructure
           command: |
@@ -418,6 +418,6 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-frontend, deploy-backend]
-      - cloudfront-update:
-          requires: [smoke-test]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
       
