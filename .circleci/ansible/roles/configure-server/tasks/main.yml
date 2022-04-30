@@ -6,24 +6,39 @@
     update_cache: yes
     cache_valid_time: 86400 #One day
 
-- name: "adding nodejs repo"
-  shell: "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
-
-- name: "install node"
+- name: "Installing dependencies"
   become: true
-  apt: 
-    name: "nodejs"
-    state: "latest"
-    update_cache: "yes"
-  
-- name: "npm version"
-  shell: "npm -v"
+  apt:
+    name: ["nodejs", "npm"]
+    state: latest
+    update_cache: yes
 
-- name: "install pm2"
+- name: "Installing pm2"
   become: true
   npm:
     name: pm2
     global: yes
     production: yes
     state: present
+
+# - name: "adding nodejs repo"
+#   shell: "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
+
+# - name: "install node"
+#   become: true
+#   apt: 
+#     name: "nodejs"
+#     state: "latest"
+#     update_cache: "yes"
+  
+# - name: "npm version"
+#   shell: "npm -v"
+
+# - name: "install pm2"
+#   become: true
+#   npm:
+#     name: pm2
+#     global: yes
+#     production: yes
+#     state: present
 
