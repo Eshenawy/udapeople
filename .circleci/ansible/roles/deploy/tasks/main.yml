@@ -36,12 +36,9 @@
   shell: | 
     cd /home/ubuntu
     mkdir app && tar xzf artifact.tar.gz -C app
-    echo "listing content of /home/ubuntu"
-    cd app
-    echo "listing content of /home/ubuntu/app"
 
 - name: "Start the server"
   shell: | 
-    cd /home/ubuntu
+    cd /home/ubuntu/app
     pm2 stop default
-    pm2 start npm --name app -- start
+    pm2 start npm -- start
