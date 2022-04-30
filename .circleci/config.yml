@@ -1,5 +1,18 @@
 version: 2.1
 
+commands:
+  destroy-environment:
+    description: Destroy back-end and front-end cloudformation stacks given a workflow ID.
+    steps:
+      - run:
+          name: Destroy environments
+          when: on_fail
+          command: |
+            aws s3 rm "s3://udapeople-${CIRCLE_WORKFLOW_ID:0:7}" --recursive || echo "failed to remove the s3 files"
+            aws cloudformation delete-stack --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" || "failed to remove the frontend stack"
+            aws cloudformation delete-stack --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" || "failed to remove the backend stack"
+
+
 
 jobs:
   
@@ -84,9 +97,9 @@ jobs:
             cd frontend
             npm install
             npm audit fix --audit-level=critical --force
-      - save_cache:
-          paths: [frontend/node_modules]
-          key: frontend-build
+      # - save_cache:
+      #     paths: [frontend/node_modules]
+      #     key: frontend-build
 
   scan-backend:
     docker:
@@ -101,9 +114,75 @@ jobs:
             cd backend
             npm install
             npm audit fix --audit-level=critical --force
-      - save_cache:
-          paths: [backend/node_modules]
-          key: backend-build
+      # - save_cache:
+      #     paths: [backend/node_modules]
+      #     key: backend-build
+
+  deploy-infrastructure:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum -y install tar gzip
+      - run:
+          name: Deploying backend infrastructure
+          command: |
+            pwd
+            aws cloudformation deploy \
+                --template-file .circleci/files/backend.yml \
+                --stack-name "udapeople-backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+                --tags project=udapeople
+      - run:
+          name: Deploying frontend infrastructure
+          command: |
+            aws cloudformation deploy \
+                --template-file .circleci/files/frontend.yml \
+                --stack-name "udapeople-frontend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --parameter-overrides ID="${CIRCLE_WORKFLOW_ID:0:7}"  \
+                --tags project=udapeople
+      - run:
+          name: Building the inventory file that contains the target machines
+          command: |
+            pwd
+            mkdir -p /tmp/workspace
+            touch /tmp/workspace/inventory.txt
+            cd /tmp/workspace/
+            echo "[web]" >> inventory.txt
+            aws ec2 describe-instances \
+                --filters "Name=tag:Name,Values=backend-${CIRCLE_WORKFLOW_ID:0:7}" \
+                --query Reservations[*].Instances[*].[PublicDnsName] --output text >> /tmp/workspace/inventory.txt
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - inventory.txt
+      - destroy-environment
+
+  configure-infrastructure:
+    docker:
+      # - image: python:3.7-alpine3.12
+      - image: cytopia/ansible:latest-aws
+    steps:
+      - checkout
+      - attach_workspace:
+          at: /tmp/workspace
+      - add_ssh_keys:
+          fingerprints: ["c4:90:bc:59:1c:6e:e3:7d:d7:8e:d6:a7:f9:af:70:96"]
+      # - run:
+      #     name: Install dependecies
+      #     command: |
+      #       pwd
+      #       apk add --no-cache aws-cli 
+      #       apk add --update ansible
+      - run:
+          name: Run Playbook and Configure server
+          command: |
+            pwd
+            cat /tmp/workspace/inventory.txt
+            cd .circleci/ansible
+            ansible-playbook -i /tmp/workspace/inventory.txt configure-server.yml
+      - destroy-environment
+
 
 
 workflows:
