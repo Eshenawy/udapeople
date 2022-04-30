@@ -1,43 +1,18 @@
 ---
-- name: Update and upgrade apt packages
-  become: true
-  apt:
-    upgrade: yes
-    update_cache: yes
-    cache_valid_time: 86400 #One day
-
-- name: "adding nodejs repo"
-  shell: "curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -"
-
-- name: "install node"
-  become: true
-  apt: 
-    name: "nodejs"
-    state: "latest"
-    update_cache: "yes"
-  
-- name: "npm version"
-  shell: "npm -v"
-
-- name: "install pm2"
-  become: true
-  npm:
-    name: pm2
-    global: yes
-    production: yes
-    state: present
-
 - name: "Fetch the artifact and extract it"
+  become: true
   copy: 
     src: ~/project/artifact.tar.gz
     dest: /home/ubuntu/artifact.tar.gz
 
 - name: "Prepare application files"
+  become: true
   shell: | 
     cd /home/ubuntu
     mkdir app && tar xzf artifact.tar.gz -C app
 
 - name: "Start the server"
+  become: true
   shell: | 
     cd /home/ubuntu/app
     pm2 stop default
