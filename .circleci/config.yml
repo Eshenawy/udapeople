@@ -393,7 +393,6 @@ jobs:
       - revert-migrations
 
 
-
 workflows:
   default:
     jobs:
@@ -419,6 +418,6 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-frontend, deploy-backend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
+      - cloudfront-update:
+          requires: [smoke-test]
       
