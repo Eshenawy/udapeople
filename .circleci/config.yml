@@ -408,24 +408,24 @@ jobs:
       - destroy-environment
       - revert-migrations
 
-cleanup:
-    docker:
-      - image: amazon/aws-cli
-    steps:
-      - checkout
-      - run: yum -y install tar gzip
-      - attach_workspace:
-          at: /tmp/workspace
-      - run:
-          name: Remove old stacks and files
-          command: |
-            export OldWorkflowID=$(cat /tmp/workspace/old-workflow-id.txt)
-            if [[ ${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
-            then
-              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
-              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
-              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
-            fi
+  cleanup:
+      docker:
+        - image: amazon/aws-cli
+      steps:
+        - checkout
+        - run: yum -y install tar gzip
+        - attach_workspace:
+            at: /tmp/workspace
+        - run:
+            name: Remove old stacks and files
+            command: |
+              export OldWorkflowID=$(cat /tmp/workspace/old-workflow-id.txt)
+              if [[ ${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
+              then
+                aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+                aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+              fi
 
 workflows:
   default:
