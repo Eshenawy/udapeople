@@ -382,6 +382,17 @@ jobs:
       - image: amazon/aws-cli
     steps:
       - checkout
+      - run: yum -y install tar gzip
+      - run: 
+          name: Extract old workflow id
+          command: | 
+            export OldWorkflowID=$(aws cloudformation \
+                    list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
+                    --no-paginate --output text)
+            echo OldID: "${OldWorkflowID}"
+            echo CurrentID "${CIRCLE_WORKFLOW_ID:0:7}"
+            mkdir -p /tmp/workspace && touch /tmp/workspace/old-workflow-id.txt
+            echo "${OldWorkflowID}" >> /tmp/workspace/old-workflow-id.txt
       - run:
           name: Update cloudfront distribution
           command: |
@@ -390,9 +401,31 @@ jobs:
                 --stack-name InitialStack \
                 --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
                 --tags project=udapeople
+      - persist_to_workspace:
+          root: /tmp/workspace
+          paths:
+            - old-workflow-id.txt
       - destroy-environment
       - revert-migrations
 
+cleanup:
+    docker:
+      - image: amazon/aws-cli
+    steps:
+      - checkout
+      - run: yum -y install tar gzip
+      - attach_workspace:
+          at: /tmp/workspace
+      - run:
+          name: Remove old stacks and files
+          command: |
+            export OldWorkflowID=$(cat /tmp/workspace/old-workflow-id.txt)
+            if [[ ${CIRCLE_WORKFLOW_ID:0:7}" =~ "${OldWorkflowID}" ]]
+            then
+              aws s3 rm "s3://udapeople-${OldWorkflowID}" --recursive
+              aws cloudformation delete-stack --stack-name "udapeople-backend-${OldWorkflowID}"
+              aws cloudformation delete-stack --stack-name "udapeople-frontend-${OldWorkflowID}"
+            fi
 
 workflows:
   default:
@@ -421,4 +454,6 @@ workflows:
           requires: [deploy-frontend, deploy-backend]
       - cloudfront-update:
           requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
       
