@@ -1,0 +1,5 @@
+https://github.com/aladeeb/udapeople
+http://udapeople-14308a8.s3-website.us-east-1.amazonaws.com/
+http://d1loof86s4h1sx.cloudfront.net/
+http://34.203.197.80:3030/api/status
+http://ec2-54-91-60-189.compute-1.amazonaws.com:9090/
